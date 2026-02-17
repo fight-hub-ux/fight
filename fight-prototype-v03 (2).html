@@ -2914,8 +2914,8 @@ function updateDemo() {
       d.timer = 0;
     }
   } else if (d.phase === 'execute') {
-    // Fire the move on frame 0
-    if (d.timer === 0) {
+    // Fire the move on frame 1 (timer pre-incremented before phase checks)
+    if (d.timer === 1) {
       const move = d.currentMove;
       if (move) {
         // Ensure meter is full for specials/supers
