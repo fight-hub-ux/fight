@@ -217,6 +217,111 @@ let roundTimer = 99;
 let roundTimerAccum = 0;
 let slowmoFrames = 0;
 let selectedStage = 'the_dump'; // default stage
+let practiceMode = false;
+
+// ============================================================
+// PRACTICE MODE STATE
+// ============================================================
+let practiceState = {
+  dummyBehavior: 'stand',   // 'stand', 'crouch', 'jump', 'block', 'cpu'
+  showCommandList: true,
+  commandListScroll: 0,
+  inputHistory: [],          // last N inputs displayed
+  lastHitInfo: null,         // { damage, type, hitstun, blockstun, result, timer }
+  comboDisplay: { hits: 0, damage: 0, timer: 0 },
+  dummyHealthReset: true,    // auto-reset dummy health
+  healthResetDelay: 0,       // frames until health resets after combo drops
+  infiniteMeter: false,
+};
+
+// Move command list data for each character
+const MOVE_COMMANDS = {
+  rekt: {
+    name: 'REKT',
+    archetype: 'RUSHDOWN / WILDCARD',
+    normals: [
+      { name: 'Light Punch',   input: 'U',   key: 'lp', type: 'mid' },
+      { name: 'Medium Punch',  input: 'I',   key: 'mp', type: 'mid' },
+      { name: 'Heavy Punch',   input: 'O',   key: 'hp', type: 'mid' },
+      { name: 'Light Kick',    input: 'J',   key: 'lk', type: 'low' },
+      { name: 'Medium Kick',   input: 'K',   key: 'mk', type: 'mid' },
+      { name: 'Heavy Kick',    input: 'L',   key: 'hk', type: 'mid' },
+    ],
+    specials: [
+      { name: 'GLITCH PUNCH',    input: 'Crouch + Y',     key: 'glitchPunch', type: 'mid',   cost: '100 meter', note: 'Crouch special' },
+      { name: 'SYSTEM ERROR',    input: 'Y',              key: 'systemError', type: 'mid',   cost: '100 meter', note: 'Launches opponent' },
+      { name: 'MALFUNCTION',     input: 'Close + Y',      key: 'malfunction', type: 'throw', cost: '100 meter', note: 'Command grab (close range)' },
+    ],
+    supers: [
+      { name: 'FULL SYSTEM CRASH', input: 'T', key: 'super', type: 'mid', cost: '400 meter', note: 'Full super' },
+    ],
+  },
+  gabos: {
+    name: 'GABOS',
+    archetype: 'GRAPPLER / COUNTER',
+    normals: [
+      { name: 'Light Punch',   input: 'U',   key: 'lp', type: 'mid' },
+      { name: 'Medium Punch',  input: 'I',   key: 'mp', type: 'mid' },
+      { name: 'Heavy Punch',   input: 'O',   key: 'hp', type: 'mid' },
+      { name: 'Light Kick',    input: 'J',   key: 'lk', type: 'low' },
+      { name: 'Medium Kick',   input: 'K',   key: 'mk', type: 'mid' },
+      { name: 'Heavy Kick',    input: 'L',   key: 'hk', type: 'mid' },
+    ],
+    specials: [
+      { name: 'SHORT SELL',        input: 'Fwd + Y',      key: 'shortSell',       type: 'mid',     cost: '100 meter', note: 'Has armor frames' },
+      { name: 'HOSTILE TAKEOVER',  input: 'Close + Y',    key: 'hostileTakeover', type: 'throw',   cost: '100 meter', note: 'Command grab' },
+      { name: 'MARGIN CALL',       input: 'Y',            key: 'marginCall',      type: 'counter', cost: '100 meter', note: 'Counter reversal' },
+      { name: 'BEAR TRAP',         input: 'Crouch + Y',   key: 'bearTrap',        type: 'throw',   cost: '100 meter', note: 'Low grab' },
+    ],
+    supers: [
+      { name: 'DEAD CAT BOUNCE', input: 'T', key: 'super', type: 'mid', cost: '400 meter', note: 'Full super' },
+    ],
+  },
+  pithead: {
+    name: 'PITHEAD',
+    archetype: 'MOMENTUM / SNOWBALL',
+    normals: [
+      { name: 'Light Punch',   input: 'U',   key: 'lp', type: 'mid' },
+      { name: 'Medium Punch',  input: 'I',   key: 'mp', type: 'mid' },
+      { name: 'Heavy Punch',   input: 'O',   key: 'hp', type: 'mid' },
+      { name: 'Light Kick',    input: 'J',   key: 'lk', type: 'low' },
+      { name: 'Medium Kick',   input: 'K',   key: 'mk', type: 'mid' },
+      { name: 'Heavy Kick',    input: 'L',   key: 'hk', type: 'mid' },
+    ],
+    specials: [
+      { name: 'HASH RATE',       input: 'Y',              key: 'hashRate',     type: 'mid',  cost: '100 meter', note: 'Multi-hit flurry (4 hits)' },
+      { name: 'OVERCLOCK',       input: 'Fwd + Y',        key: 'overclock',    type: 'mid',  cost: '100 meter', note: 'Dash attack, faster at high KET' },
+      { name: 'POWER SURGE',     input: 'Crouch + S + Y', key: 'powerSurge',   type: 'mid',  cost: '100 meter', note: 'KET > 30. Damage scales w/ KET' },
+      { name: 'DIFFICULTY ADJ.', input: 'Crouch + S + Y', key: 'difficultyAdj',type: 'self',  cost: '100 meter', note: 'KET <= 30. Lose 120 HP, fill KET' },
+    ],
+    supers: [
+      { name: '51% ATTACK',    input: 'T',          key: 'super',    type: 'mid',         cost: '400 meter', note: 'Electric discharge' },
+      { name: 'PROOF OF WORK', input: 'Crouch + T', key: 'ultimate', type: 'unblockable', cost: '400m + KET >= 50', note: 'Ultimate: mines opponent HP' },
+    ],
+  },
+  degenerate: {
+    name: 'DEGENERATE',
+    archetype: 'STANCE / MUTATION',
+    normals: [
+      { name: 'Light Punch',   input: 'U',   key: 'lp', type: 'mid' },
+      { name: 'Medium Punch',  input: 'I',   key: 'mp', type: 'mid' },
+      { name: 'Heavy Punch',   input: 'O',   key: 'hp', type: 'mid' },
+      { name: 'Light Kick',    input: 'J',   key: 'lk', type: 'low' },
+      { name: 'Medium Kick',   input: 'K',   key: 'mk', type: 'mid' },
+      { name: 'Heavy Kick',    input: 'L',   key: 'hk', type: 'mid' },
+    ],
+    specials: [
+      { name: 'TOXIC SPIT',       input: 'Y',           key: 'toxicSpit',       type: 'mid',  cost: '100 meter', note: 'Projectile + poison DOT' },
+      { name: 'MUTATION ROULETTE', input: 'Crouch + Y',  key: 'mutationRoulette',type: 'self', cost: '100 meter', note: 'Random buff (SPD/ARM/DMG/RCH)' },
+      { name: 'MELTDOWN',         input: 'Back + Y',     key: 'meltdown',        type: 'self', cost: '100 meter', note: 'Teleport + corrosive puddle' },
+      { name: 'TOXIC EMBRACE',    input: 'Close + Y',    key: 'toxicEmbrace',    type: 'mid',  cost: '100 meter', note: 'Command grab (close range)' },
+    ],
+    supers: [
+      { name: 'BAD TRIP',       input: 'T',          key: 'super',    type: 'mid',         cost: '400 meter', note: 'Multi-hit body explosion' },
+      { name: 'TOTAL MELTDOWN', input: 'Crouch + T', key: 'ultimate', type: 'unblockable', cost: '400 meter', note: 'Ultimate: dissolve + drain' },
+    ],
+  },
+};
 
 // ============================================================
 // LEVEL / STAGE DATA
@@ -2605,6 +2710,7 @@ function drawCharacterSelect() {
   ctx.font='28px "Press Start 2P", monospace'; ctx.fillStyle='#ff003366'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('VS',GAME_W/2,GAME_H/2);
   ctx.font='8px "Press Start 2P", monospace'; ctx.textAlign='center'; ctx.textBaseline='bottom';
   if (selectState.p1.locked && selectState.p2.locked) { ctx.fillStyle='#ffcc00'; ctx.fillText('PRESS ENTER TO CONTINUE',GAME_W/2,GAME_H-18); }
+  else if (selectState.p1.locked && !selectState.p2.locked) { ctx.fillStyle='#444'; ctx.fillText('P2: ARROWS + [ TO SELECT',GAME_W/2,GAME_H-28); ctx.fillStyle='#00ccff'; ctx.fillText('PRESS P FOR PRACTICE MODE',GAME_W/2,GAME_H-14); }
   else { ctx.fillStyle='#444'; ctx.fillText('P1: WASD + U TO SELECT  |  P2: ARROWS + [ TO SELECT',GAME_W/2,GAME_H-28); ctx.fillStyle='#333'; ctx.font='7px "Share Tech Mono", monospace'; ctx.fillText('BACKSPACE TO DESELECT',GAME_W/2,GAME_H-14); }
   ctx.font='6px "Share Tech Mono", monospace'; ctx.fillStyle='#1a1a22'; ctx.textAlign='right'; ctx.fillText('BLOCK CITY FIGHT LEAGUE',GAME_W-12,GAME_H-6);
 }
@@ -2625,10 +2731,32 @@ function updateCharacterSelect() {
     if (consumePress('BracketLeft')) { const idx=selectState.p2.row*GRID_COLS+selectState.p2.col; if (ROSTER[idx].playable) { selectState.p2.locked=true; selectState.p2.charId=ROSTER[idx].id; } }
   }
   if (consumePress('Backspace')) { if (selectState.p2.locked) { selectState.p2.locked=false; selectState.p2.charId=null; } else if (selectState.p1.locked) { selectState.p1.locked=false; selectState.p1.charId=null; } }
+  // Practice mode: P1 locked, press P to enter practice with selected char
+  if (selectState.p1.locked && !selectState.p2.locked) {
+    if (consumePress('KeyP')) {
+      p1CharId = selectState.p1.charId;
+      p2CharId = 'rekt'; // default dummy character
+      // Pick a different dummy if P1 is rekt
+      if (p1CharId === 'rekt') p2CharId = 'gabos';
+      practiceMode = true;
+      selectedStage = 'the_dump';
+      gameState = 'practice';
+      resetFighters();
+      practiceState.commandListScroll = 0;
+      practiceState.inputHistory = [];
+      practiceState.healthResetDelay = 0;
+      practiceState.dummyBehavior = 'stand';
+      practiceState.infiniteMeter = false;
+      practiceState.dummyHealthReset = true;
+      practiceState.showCommandList = true;
+      return;
+    }
+  }
   if (selectState.p1.locked && selectState.p2.locked) {
     if (consumePress('Enter') || consumePress('NumpadEnter')) {
       p1CharId = selectState.p1.charId;
       p2CharId = selectState.p2.charId;
+      practiceMode = false;
       gameState = 'levelSelect';
       levelSelectState = { cursor: 0, timer: 0, confirmed: false, confirmTimer: 0 };
     }
@@ -2706,6 +2834,410 @@ function handleTimeout() {
       }, 3500);
     } else { roundNumber++; startRound(); }
   }, 2000);
+}
+
+// ============================================================
+// PRACTICE MODE — UPDATE & DRAW
+// ============================================================
+function updatePracticeMode() {
+  const p1Inp = getInput(0);
+  processAttacks(p1, 0);
+  p1.update(p1Inp, p2);
+
+  // Dummy behavior
+  const dummyInp = { left: false, right: false, up: false, down: false };
+  if (practiceState.dummyBehavior === 'crouch') {
+    dummyInp.down = true;
+  } else if (practiceState.dummyBehavior === 'jump') {
+    if (p2.onGround && p2.state === 'idle') dummyInp.up = true;
+  } else if (practiceState.dummyBehavior === 'block') {
+    // Always hold back relative to P1
+    if (p1.x < p2.x) dummyInp.left = true;
+    else dummyInp.right = true;
+    // Also crouch block for low attacks
+    if (p1.state === 'attack' && p1.attackData && p1.attackData.type === 'low') dummyInp.down = true;
+  }
+  p2.update(dummyInp, p1);
+
+  checkHits(p1, p2, 1);
+  checkHits(p2, p1, 0);
+
+  // Degenerate projectile collision in practice
+  [p1, p2].forEach((fighter, i) => {
+    if (fighter.charId === 'degenerate' && fighter.toxicProjectile) {
+      const proj = fighter.toxicProjectile;
+      const target = i === 0 ? p2 : p1;
+      const tBox = target.getHurtbox();
+      if (proj.x > tBox.x && proj.x < tBox.x + tBox.w && proj.y > tBox.y && proj.y < tBox.y + tBox.h) {
+        target.health = Math.max(0, target.health - DEGEN_ATTACKS.toxicSpit.damage);
+        target.dotTimer = DEGEN_ATTACKS.toxicSpit.dotDuration;
+        target.dotDamage = DEGEN_ATTACKS.toxicSpit.dotDamage;
+        target.state = 'hitstun'; target.hitstunTimer = DEGEN_ATTACKS.toxicSpit.hitstun;
+        target.vx = fighter.facing * 3;
+        spawnParticles(proj.x, proj.y, '#44ff00', 8);
+        fighter.toxicProjectile = null;
+        fighter.meter = Math.min(400, fighter.meter + 20);
+      }
+    }
+  });
+
+  // Combo tracking for practice
+  comboCounters.forEach(cc => { if (cc.timer > 0) cc.timer--; if (cc.timer <= 0) { cc.count = 0; cc.damage = 0; } });
+
+  // Track input history for display
+  const inputNames = ['lp','mp','hp','lk','mk','hk','special','super'];
+  const inputLabels = { lp: 'LP', mp: 'MP', hp: 'HP', lk: 'LK', mk: 'MK', hk: 'HK', special: 'SP', super: 'SU' };
+  inputNames.forEach(n => {
+    if (justPressed[p1Inp[n]]) {
+      practiceState.inputHistory.push({ label: inputLabels[n], timer: 120 });
+      if (practiceState.inputHistory.length > 12) practiceState.inputHistory.shift();
+    }
+  });
+  const dirLabels = [];
+  if (p1Inp.up) dirLabels.push('UP');
+  if (p1Inp.down) dirLabels.push('DN');
+  if (p1Inp.left) dirLabels.push('L');
+  if (p1Inp.right) dirLabels.push('R');
+  // Tick down input history
+  practiceState.inputHistory = practiceState.inputHistory.filter(h => { h.timer--; return h.timer > 0; });
+
+  // Infinite meter
+  if (practiceState.infiniteMeter) {
+    p1.meter = 400;
+    if (p1.charId === 'pithead') p1.ketMeter = 100;
+  }
+
+  // Auto-reset dummy health after combo drops
+  if (practiceState.dummyHealthReset) {
+    if (p2.health < p2.maxHealth) {
+      if (p2.state === 'idle' || p2.state === 'walk') {
+        practiceState.healthResetDelay++;
+        if (practiceState.healthResetDelay > 90) {
+          p2.health = Math.min(p2.maxHealth, p2.health + 20);
+          if (p2.health >= p2.maxHealth) practiceState.healthResetDelay = 0;
+        }
+      } else {
+        practiceState.healthResetDelay = 0;
+      }
+    }
+  }
+
+  // Prevent KO in practice — revive dummy
+  if (p2.health <= 0) {
+    p2.health = p2.maxHealth;
+    p2.state = 'idle';
+    p2.knockdownTimer = 0;
+    p2.stunTimer = 0;
+    p2.flickerTimer = 0;
+    p2.vx = 0; p2.vy = 0;
+    p2.x = 680; p2.y = GROUND_Y;
+    practiceState.healthResetDelay = 0;
+  }
+
+  // Practice mode hotkeys (number keys)
+  if (consumePress('Digit1')) {
+    const behaviors = ['stand', 'crouch', 'jump', 'block'];
+    const ci = behaviors.indexOf(practiceState.dummyBehavior);
+    practiceState.dummyBehavior = behaviors[(ci + 1) % behaviors.length];
+  }
+  if (consumePress('Digit2')) {
+    practiceState.infiniteMeter = !practiceState.infiniteMeter;
+  }
+  if (consumePress('Digit3')) {
+    practiceState.dummyHealthReset = !practiceState.dummyHealthReset;
+  }
+  if (consumePress('Digit4')) {
+    practiceState.showCommandList = !practiceState.showCommandList;
+  }
+  if (consumePress('Digit5')) {
+    // Reset positions
+    p1.x = 280; p1.y = GROUND_Y; p1.vx = 0; p1.vy = 0;
+    p1.state = 'idle'; p1.health = p1.maxHealth; p1.meter = practiceState.infiniteMeter ? 400 : 0;
+    p2.x = 680; p2.y = GROUND_Y; p2.vx = 0; p2.vy = 0;
+    p2.state = 'idle'; p2.health = p2.maxHealth;
+    if (p1.charId === 'pithead') p1.ketMeter = practiceState.infiniteMeter ? 100 : 0;
+    particles = [];
+    comboCounters = [{ count: 0, timer: 0, damage: 0 }, { count: 0, timer: 0, damage: 0 }];
+  }
+  // Scroll command list
+  if (consumePress('Digit9')) practiceState.commandListScroll = Math.max(0, practiceState.commandListScroll - 3);
+  if (consumePress('Digit0')) practiceState.commandListScroll += 3;
+  // Exit practice
+  if (consumePress('Escape') || consumePress('Backspace')) {
+    practiceMode = false;
+    gameState = 'charSelect';
+    selectState.p1 = { row: 0, col: 0, locked: false, charId: null };
+    selectState.p2 = { row: 0, col: 2, locked: false, charId: null };
+    selectState.timer = 0;
+  }
+}
+
+function drawPracticeHUD() {
+  // Draw normal HUD first
+  drawHUD();
+
+  const charId = p1.charId;
+  const cmds = MOVE_COMMANDS[charId];
+  if (!cmds) return;
+
+  // Practice mode label
+  ctx.font = '8px "Press Start 2P", monospace';
+  ctx.fillStyle = '#ffcc00';
+  ctx.textAlign = 'center';
+  ctx.fillText('PRACTICE MODE', GAME_W / 2, 12);
+
+  // Dummy behavior indicator
+  ctx.font = '7px "Press Start 2P", monospace';
+  ctx.fillStyle = '#888';
+  ctx.textAlign = 'right';
+  ctx.fillText('DUMMY: ' + practiceState.dummyBehavior.toUpperCase(), GAME_W - 16, GAME_H - 80);
+  ctx.fillStyle = practiceState.infiniteMeter ? '#ffcc00' : '#444';
+  ctx.fillText('INF METER: ' + (practiceState.infiniteMeter ? 'ON' : 'OFF'), GAME_W - 16, GAME_H - 68);
+  ctx.fillStyle = practiceState.dummyHealthReset ? '#00ff88' : '#444';
+  ctx.fillText('HP RESET: ' + (practiceState.dummyHealthReset ? 'ON' : 'OFF'), GAME_W - 16, GAME_H - 56);
+
+  // Controls legend
+  ctx.font = '6px "Share Tech Mono", monospace';
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'right';
+  ctx.fillText('[1] Dummy  [2] Meter  [3] HP Reset  [4] Commands  [5] Reset Pos  [ESC] Exit', GAME_W - 16, GAME_H - 40);
+  ctx.fillText('[9/0] Scroll Command List', GAME_W - 16, GAME_H - 30);
+
+  // Input history display
+  if (practiceState.inputHistory.length > 0) {
+    ctx.font = '7px "Press Start 2P", monospace';
+    ctx.textAlign = 'left';
+    const histX = 16;
+    const histY = GAME_H - 100;
+    ctx.fillStyle = '#333';
+    ctx.fillText('INPUT:', histX, histY - 12);
+    let hx = histX;
+    practiceState.inputHistory.forEach((h) => {
+      const alpha = Math.min(1, h.timer / 40);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#00ffcc';
+      ctx.fillText(h.label, hx, histY);
+      hx += ctx.measureText(h.label + ' ').width + 4;
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  // Fighter state display
+  ctx.font = '6px "Share Tech Mono", monospace';
+  ctx.fillStyle = '#666';
+  ctx.textAlign = 'left';
+  ctx.fillText('STATE: ' + p1.state.toUpperCase() + (p1.attackName ? ' (' + p1.attackName + ')' : ''), 16, GAME_H - 120);
+  if (p1.state === 'attack' && p1.attackData) {
+    const atk = p1.attackData;
+    const frame = p1.attackFrame;
+    let phase = 'STARTUP';
+    if (frame >= atk.startup && frame < atk.startup + atk.active) phase = 'ACTIVE';
+    else if (frame >= atk.startup + atk.active) phase = 'RECOVERY';
+    ctx.fillStyle = phase === 'ACTIVE' ? '#ff3333' : phase === 'STARTUP' ? '#ffcc00' : '#0088ff';
+    ctx.fillText('FRAME: ' + frame + '/' + (atk.startup + atk.active + atk.recovery) + ' [' + phase + ']', 16, GAME_H - 110);
+  }
+
+  // Command list panel (right side)
+  if (practiceState.showCommandList) {
+    drawCommandList(cmds, charId);
+  }
+}
+
+function drawCommandList(cmds, charId) {
+  const panelX = GAME_W - 260;
+  const panelY = 82;
+  const panelW = 248;
+  const panelH = 310;
+
+  // Panel background
+  ctx.fillStyle = 'rgba(4, 4, 10, 0.92)';
+  ctx.fillRect(panelX, panelY, panelW, panelH);
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(panelX, panelY, panelW, panelH);
+
+  // Header
+  ctx.font = '8px "Press Start 2P", monospace';
+  ctx.fillStyle = CHARACTERS[charId].color;
+  ctx.textAlign = 'left';
+  ctx.fillText(cmds.name + ' — MOVES', panelX + 8, panelY + 16);
+  ctx.font = '6px "Share Tech Mono", monospace';
+  ctx.fillStyle = '#666';
+  ctx.fillText(cmds.archetype, panelX + 8, panelY + 28);
+
+  // Separator
+  ctx.strokeStyle = '#222';
+  ctx.beginPath(); ctx.moveTo(panelX + 6, panelY + 34); ctx.lineTo(panelX + panelW - 6, panelY + 34); ctx.stroke();
+
+  // Clip area for scrollable content
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(panelX, panelY + 36, panelW, panelH - 40);
+  ctx.clip();
+
+  let y = panelY + 48 - practiceState.commandListScroll * 14;
+  const leftCol = panelX + 8;
+  const inputCol = panelX + 140;
+  const dataCol = panelX + 200;
+
+  const charColor = CHARACTERS[charId].color;
+
+  // Section: NORMALS
+  ctx.font = '6px "Press Start 2P", monospace';
+  ctx.fillStyle = '#555';
+  ctx.fillText('NORMALS', leftCol, y);
+  y += 4;
+
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.moveTo(leftCol, y); ctx.lineTo(panelX + panelW - 8, y); ctx.stroke();
+  y += 10;
+
+  // Column headers
+  ctx.font = '5px "Share Tech Mono", monospace';
+  ctx.fillStyle = '#444';
+  ctx.fillText('MOVE', leftCol, y);
+  ctx.fillText('INPUT', inputCol, y);
+  ctx.fillText('DMG', dataCol, y);
+  ctx.fillText('F', dataCol + 30, y);
+  y += 10;
+
+  cmds.normals.forEach(move => {
+    const atk = CHARACTERS[charId].attacks[move.key];
+    ctx.font = '6px "Share Tech Mono", monospace';
+    ctx.fillStyle = '#aaa';
+    ctx.fillText(move.name, leftCol, y);
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillText(move.input, inputCol, y);
+    ctx.fillStyle = '#ff6644';
+    ctx.fillText(String(atk.damage), dataCol, y);
+    ctx.fillStyle = '#666';
+    ctx.fillText(atk.startup + '/' + atk.active + '/' + atk.recovery, dataCol + 30, y);
+    // Type tag
+    const typeCol = move.type === 'low' ? '#ff4444' : move.type === 'mid' ? '#4488ff' : '#ffcc00';
+    ctx.fillStyle = typeCol;
+    ctx.font = '4px "Press Start 2P", monospace';
+    ctx.fillText(move.type.toUpperCase(), leftCol + 85, y);
+    y += 13;
+  });
+
+  y += 6;
+
+  // Section: SPECIALS
+  ctx.font = '6px "Press Start 2P", monospace';
+  ctx.fillStyle = charColor;
+  ctx.fillText('SPECIALS', leftCol, y);
+  y += 4;
+  ctx.strokeStyle = charColor + '44';
+  ctx.beginPath(); ctx.moveTo(leftCol, y); ctx.lineTo(panelX + panelW - 8, y); ctx.stroke();
+  y += 10;
+
+  cmds.specials.forEach(move => {
+    const atk = CHARACTERS[charId].attacks[move.key];
+    ctx.font = '6px "Share Tech Mono", monospace';
+    ctx.fillStyle = charColor;
+    ctx.fillText(move.name, leftCol, y);
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillText(move.input, inputCol, y);
+    y += 11;
+    // Frame data + note
+    ctx.fillStyle = '#ff6644';
+    ctx.font = '5px "Share Tech Mono", monospace';
+    ctx.fillText('DMG:' + atk.damage + '  F:' + atk.startup + '/' + atk.active + '/' + atk.recovery, leftCol + 8, y);
+    if (move.cost) {
+      ctx.fillStyle = '#0088ff';
+      ctx.fillText(move.cost, inputCol, y);
+    }
+    y += 10;
+    if (move.note) {
+      ctx.fillStyle = '#555';
+      ctx.font = '5px "Share Tech Mono", monospace';
+      ctx.fillText(move.note, leftCol + 8, y);
+      y += 10;
+    }
+    y += 3;
+  });
+
+  y += 4;
+
+  // Section: SUPERS
+  ctx.font = '6px "Press Start 2P", monospace';
+  ctx.fillStyle = '#ffcc00';
+  ctx.fillText('SUPERS', leftCol, y);
+  y += 4;
+  ctx.strokeStyle = '#ffcc0044';
+  ctx.beginPath(); ctx.moveTo(leftCol, y); ctx.lineTo(panelX + panelW - 8, y); ctx.stroke();
+  y += 10;
+
+  cmds.supers.forEach(move => {
+    const atk = CHARACTERS[charId].attacks[move.key];
+    ctx.font = '6px "Share Tech Mono", monospace';
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillText(move.name, leftCol, y);
+    ctx.fillStyle = '#ff8800';
+    ctx.fillText(move.input, inputCol, y);
+    y += 11;
+    ctx.fillStyle = '#ff6644';
+    ctx.font = '5px "Share Tech Mono", monospace';
+    ctx.fillText('DMG:' + atk.damage + '  F:' + atk.startup + '/' + atk.active + '/' + atk.recovery, leftCol + 8, y);
+    ctx.fillStyle = '#ff3333';
+    ctx.fillText(move.cost, inputCol, y);
+    y += 10;
+    if (move.note) {
+      ctx.fillStyle = '#555';
+      ctx.fillText(move.note, leftCol + 8, y);
+      y += 10;
+    }
+    y += 3;
+  });
+
+  // Cancel chains section
+  y += 6;
+  ctx.font = '6px "Press Start 2P", monospace';
+  ctx.fillStyle = '#0088ff';
+  ctx.fillText('CANCEL CHAINS', leftCol, y);
+  y += 4;
+  ctx.strokeStyle = '#0088ff44';
+  ctx.beginPath(); ctx.moveTo(leftCol, y); ctx.lineTo(panelX + panelW - 8, y); ctx.stroke();
+  y += 10;
+
+  const cancels = CHARACTERS[charId].cancels;
+  Object.keys(cancels).forEach(from => {
+    const targets = cancels[from];
+    ctx.font = '5px "Share Tech Mono", monospace';
+    ctx.fillStyle = '#aaa';
+    const chain = from.toUpperCase() + ' \u2192 ' + targets.map(t => t.toUpperCase()).join(', ');
+    ctx.fillText(chain, leftCol + 4, y);
+    y += 10;
+  });
+
+  ctx.restore();
+
+  // Scroll indicator
+  if (practiceState.commandListScroll > 0) {
+    ctx.font = '8px "Share Tech Mono", monospace';
+    ctx.fillStyle = '#555';
+    ctx.textAlign = 'center';
+    ctx.fillText('\u25B2', panelX + panelW / 2, panelY + 42);
+  }
+  ctx.font = '8px "Share Tech Mono", monospace';
+  ctx.fillStyle = '#555';
+  ctx.textAlign = 'center';
+  ctx.fillText('\u25BC', panelX + panelW / 2, panelY + panelH - 4);
+}
+
+function drawPracticeFrame() {
+  ctx.save();
+  if (screenShake.duration > 0) ctx.translate((Math.random()-0.5)*screenShake.x*2, (Math.random()-0.5)*(screenShake.y||0)*2);
+  drawStage();
+  [p1, p2].forEach(f => {
+    if (f.state !== 'knockdown' || f.health > 0) {
+      ctx.fillStyle = '#00000044'; ctx.beginPath(); ctx.ellipse(f.x, GROUND_Y + 2, f.width * 0.75, 2, 0, 0, Math.PI * 2); ctx.fill();
+    }
+  });
+  p1.draw(); p2.draw();
+  drawParticles();
+  ctx.restore();
+  drawPracticeHUD();
 }
 
 function processAttacks(fighter, playerIndex) {
@@ -2856,6 +3388,17 @@ function gameLoop() {
     updateLevelSelect();
     drawLevelSelect();
     Object.keys(justPressed).forEach(k => justPressed[k] = false);
+    return;
+  }
+
+  if (gameState === 'practice') {
+    if (hitstopFrames > 0) { hitstopFrames--; drawPracticeFrame(); Object.keys(justPressed).forEach(k => justPressed[k] = false); return; }
+    updatePracticeMode();
+    Object.keys(justPressed).forEach(k => justPressed[k] = false);
+    updateParticles();
+    if (screenShake.duration > 0) screenShake.duration--;
+    else { screenShake.x *= 0.8; screenShake.y *= 0.8; }
+    drawPracticeFrame();
     return;
   }
 
