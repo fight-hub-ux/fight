@@ -167,6 +167,35 @@ bgImage.src = THE_DUMP_BG;
 let bgLoaded = false;
 bgImage.onload = () => { bgLoaded = true; };
 
+// Character portrait images — mapped from roster ID to filename
+const PORTRAIT_FILES = {
+  rekt: 'Rekt.jpeg',
+  diamond: 'diamond2.webp',
+  gabos: 'Gabos4.jpeg',
+  degenerate: 'The Degenerate.jpeg',
+  bullion: 'Bullion.jpg',
+  bear: 'TheBear.jpeg',
+  kol: 'Kolbot.jpeg',
+  pithead: 'PitHead.jpeg',
+  ape: 'ApeD1.jpeg',
+  okami: 'Okami.jpeg',
+  mutoshi: '_Mutoshi.jpeg',
+  underwater: 'Mr Underwater.jpeg',
+  kryger: 'Kryger.jpeg',
+  ripper: 'ripper17.jpeg',
+  chulmoo: 'CHUL-MOO.jpeg',
+  seed: 'SEED.jpeg',
+  ama: 'AMA_.jpeg',
+  lampboy: 'Lampboy.jpeg',
+};
+const portraitImages = {};
+for (const [id, file] of Object.entries(PORTRAIT_FILES)) {
+  const img = new Image();
+  img.src = file;
+  portraitImages[id] = { img, loaded: false };
+  img.onload = () => { portraitImages[id].loaded = true; };
+}
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -2598,6 +2627,42 @@ function drawStage() {
 // ============================================================
 // CHARACTER SELECT STICKMAN PORTRAITS (simplified for non-playable)
 // ============================================================
+function drawCharPortrait(cx, cy, charData, w, h, locked) {
+  const p = portraitImages[charData.id];
+  if (!p || !p.loaded) return false; // fall back to stickman if not loaded
+  ctx.save();
+  // Clip to the drawing area
+  ctx.beginPath();
+  ctx.rect(cx - w / 2, cy - h, w, h);
+  ctx.clip();
+  const img = p.img;
+  // Cover-fit the image into the target area (crop to fill)
+  const imgAspect = img.width / img.height;
+  const targetAspect = w / h;
+  let sw, sh, sx, sy;
+  if (imgAspect > targetAspect) {
+    // Image is wider — crop sides
+    sh = img.height;
+    sw = img.height * targetAspect;
+    sx = (img.width - sw) / 2;
+    sy = 0;
+  } else {
+    // Image is taller — crop bottom, keep top (face)
+    sw = img.width;
+    sh = img.width / targetAspect;
+    sx = 0;
+    sy = 0;
+  }
+  if (locked) ctx.globalAlpha = 0.3;
+  ctx.drawImage(img, sx, sy, sw, sh, cx - w / 2, cy - h, w, h);
+  // Color tint overlay matching character color
+  ctx.globalAlpha = locked ? 0.15 : 0.1;
+  ctx.fillStyle = charData.color;
+  ctx.fillRect(cx - w / 2, cy - h, w, h);
+  ctx.restore();
+  return true;
+}
+
 function drawCharSelectStickman(cx, cy, charData, scale, animT) {
   const s = scale;
   const color = charData.color;
@@ -2692,7 +2757,11 @@ function drawCharacterSelect() {
       if ((isP1H||isP1L)&&(isP2H||isP2L)) ctx.fillStyle='#121208';
       ctx.fillRect(cx-cellW/2+cellPad,cy-cellH/2+cellPad,cellW-cellPad*2,cellH-cellPad*2);
       ctx.strokeStyle='#222233'; ctx.lineWidth=1; ctx.strokeRect(cx-cellW/2+cellPad,cy-cellH/2+cellPad,cellW-cellPad*2,cellH-cellPad*2);
-      drawCharSelectStickman(cx, cy+16, ch, 0.9, selectState.timer);
+      const portraitW = cellW - cellPad * 2;
+      const portraitH = cellH - cellPad * 2 - 12; // leave room for name
+      if (!drawCharPortrait(cx, cy + cellH / 2 - cellPad - 12, ch, portraitW, portraitH, !ch.playable)) {
+        drawCharSelectStickman(cx, cy+16, ch, 0.9, selectState.timer);
+      }
       ctx.font='6px "Press Start 2P", monospace'; ctx.fillStyle=ch.playable?ch.color:'#444'; ctx.textAlign='center'; ctx.textBaseline='bottom';
       ctx.fillText(ch.name, cx, cy+cellH/2-cellPad-1);
       if (isP1H||isP1L) { ctx.strokeStyle=isP1L?'#00ff88':'#00ff8888'; ctx.lineWidth=isP1L?2.5:2; const p=isP1L?0:Math.sin(selectState.timer*0.12)*2; ctx.strokeRect(cx-cellW/2+cellPad-1-p,cy-cellH/2+cellPad-1-p,cellW-cellPad*2+2+p*2,cellH-cellPad*2+2+p*2); ctx.font='6px "Press Start 2P", monospace'; ctx.fillStyle='#00ff88'; ctx.textBaseline='bottom'; ctx.textAlign='left'; ctx.fillText('P1',cx-cellW/2+cellPad+2,cy-cellH/2+cellPad+10); }
@@ -2703,7 +2772,9 @@ function drawCharacterSelect() {
   const panelW=155, panelH=GRID_ROWS*cellH-20, pY=gridY+10;
   function drawPanel(pIdx, panelX, bgCol, borderCol, selObj) {
     const ch=ROSTER[pIdx]; ctx.fillStyle=bgCol; ctx.fillRect(panelX,pY,panelW,panelH); ctx.strokeStyle=borderCol; ctx.lineWidth=1; ctx.strokeRect(panelX,pY,panelW,panelH);
-    drawCharSelectStickman(panelX+panelW/2,pY+80,ch,1.8,selectState.timer);
+    if (!drawCharPortrait(panelX+panelW/2, pY+115, ch, panelW-16, 107, !ch.playable)) {
+      drawCharSelectStickman(panelX+panelW/2,pY+80,ch,1.8,selectState.timer);
+    }
     ctx.font='11px "Press Start 2P", monospace'; ctx.fillStyle=ch.playable?ch.color:'#555'; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(ch.name,panelX+panelW/2,pY+120);
     ctx.font='7px "Share Tech Mono", monospace'; ctx.fillStyle=ch.playable?'#888':'#444'; ctx.fillText(ch.archetype,panelX+panelW/2,pY+138);
     ctx.fillStyle=ch.playable?'#666':'#333'; ctx.fillText('"'+ch.tagline+'"',panelX+panelW/2,pY+155);
