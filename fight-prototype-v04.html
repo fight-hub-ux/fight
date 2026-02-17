@@ -282,18 +282,20 @@ const MOVE_COMMANDS = {
     normals: [
       { name: 'Light Punch',   input: 'U',   key: 'lp', type: 'mid' },
       { name: 'Medium Punch',  input: 'I',   key: 'mp', type: 'mid' },
-      { name: 'Heavy Punch',   input: 'O',   key: 'hp', type: 'mid' },
+      { name: 'Heavy Punch (Skull Arm)', input: 'O', key: 'hp', type: 'mid' },
       { name: 'Light Kick',    input: 'J',   key: 'lk', type: 'low' },
       { name: 'Medium Kick',   input: 'K',   key: 'mk', type: 'mid' },
       { name: 'Heavy Kick',    input: 'L',   key: 'hk', type: 'mid' },
     ],
     specials: [
-      { name: 'GLITCH PUNCH',    input: 'Crouch + Y',     key: 'glitchPunch', type: 'mid',   cost: '100 meter', note: 'Crouch special' },
-      { name: 'SYSTEM ERROR',    input: 'Y',              key: 'systemError', type: 'mid',   cost: '100 meter', note: 'Launches opponent' },
-      { name: 'MALFUNCTION',     input: 'Close + Y',      key: 'malfunction', type: 'throw', cost: '100 meter', note: 'Command grab (close range)' },
+      { name: 'BONE LASH',      input: 'Crouch + Y',     key: 'boneLash',     type: 'mid',         cost: '100 meter', note: 'Arm whip — extended reach' },
+      { name: 'SKULL RUSH',     input: 'Fwd + Y',        key: 'skullRush',    type: 'mid',         cost: '100 meter', note: 'Shoulder charge — has armour' },
+      { name: 'MARROW SPIKE',   input: 'Close + Y',      key: 'marrowSpike',  type: 'unblockable', cost: '100 meter', note: 'Bone eruption — unblockable' },
+      { name: 'BLOOD FRENZY',   input: 'Y',              key: 'bloodFrenzy',  type: 'mid',         cost: '100 meter', note: 'Multi-hit arm spasm (4 hits)' },
     ],
     supers: [
-      { name: 'FULL SYSTEM CRASH', input: 'T', key: 'super', type: 'mid', cost: '400 meter', note: 'Full super' },
+      { name: 'TOTAL OUTBREAK',   input: 'T',          key: 'super',    type: 'mid',         cost: '400 meter', note: 'Bone barrage eruption' },
+      { name: 'DEAD MAN\'S HAND', input: 'Crouch + T', key: 'ultimate', type: 'unblockable', cost: '400m + Feral', note: 'Ultimate: skull flail' },
     ],
   },
   gabos: {
@@ -688,34 +690,43 @@ function updateLevelSelect() {
 // CHARACTER DATA — REKT (Rushdown / Wildcard)
 // ============================================================
 const REKT_ATTACKS = {
-  lp: { damage: 30, startup: 3, active: 3, recovery: 6, hitstun: 12, blockstun: 8, pushback: 15, type: 'mid', reach: 45, yOffset: -55, h: 12 },
-  mp: { damage: 55, startup: 6, active: 4, recovery: 10, hitstun: 16, blockstun: 10, pushback: 25, type: 'mid', reach: 55, yOffset: -52, h: 14 },
-  hp: { damage: 90, startup: 9, active: 5, recovery: 16, hitstun: 22, blockstun: 14, pushback: 40, type: 'mid', reach: 60, yOffset: -50, h: 16 },
+  lp: { damage: 30, startup: 3, active: 3, recovery: 5, hitstun: 11, blockstun: 8, pushback: 12, type: 'mid', reach: 45, yOffset: -55, h: 12 },
+  mp: { damage: 55, startup: 6, active: 4, recovery: 10, hitstun: 14, blockstun: 11, pushback: 22, type: 'mid', reach: 55, yOffset: -52, h: 14 },
+  hp: { damage: 90, startup: 10, active: 7, recovery: 16, hitstun: 19, blockstun: 13, pushback: 35, type: 'mid', reach: 60, yOffset: -50, h: 16, isSkullArm: true },
   lk: { damage: 25, startup: 4, active: 3, recovery: 7, hitstun: 11, blockstun: 7, pushback: 12, type: 'low', reach: 50, yOffset: -20, h: 12 },
   mk: { damage: 50, startup: 7, active: 4, recovery: 12, hitstun: 15, blockstun: 9, pushback: 22, type: 'mid', reach: 60, yOffset: -30, h: 14 },
   hk: { damage: 85, startup: 10, active: 6, recovery: 18, hitstun: 24, blockstun: 16, pushback: 45, type: 'mid', reach: 65, yOffset: -35, h: 16 },
-  glitchPunch: { damage: 120, startup: 12, active: 6, recovery: 20, hitstun: 28, blockstun: 18, pushback: 60, type: 'mid', reach: 80, yOffset: -50, h: 22, isSpecial: true },
-  systemError: { damage: 100, startup: 8, active: 8, recovery: 24, hitstun: 30, blockstun: 12, pushback: 30, type: 'mid', reach: 50, yOffset: -70, h: 45, isSpecial: true, launches: true },
-  malfunction: { damage: 140, startup: 5, active: 3, recovery: 30, hitstun: 35, blockstun: 0, pushback: 80, type: 'throw', reach: 42, yOffset: -45, h: 30, isSpecial: true, isGrab: true },
-  super: { damage: 280, startup: 10, active: 10, recovery: 30, hitstun: 40, blockstun: 20, pushback: 100, type: 'mid', reach: 95, yOffset: -55, h: 55, isSuper: true },
+  // Bone Lash — arm whips forward, exposed muscle fibres extending beyond natural reach
+  boneLash: { damage: 80, startup: 12, active: 6, recovery: 18, hitstun: 20, blockstun: 12, pushback: 50, type: 'mid', reach: 80, yOffset: -50, h: 22, isSpecial: true, isSkullArm: true },
+  // Skull Rush — shoulder-first charge leading with the skull growth, natural armour
+  skullRush: { damage: 100, startup: 16, active: 6, recovery: 22, hitstun: 35, blockstun: 18, pushback: 60, type: 'mid', reach: 85, yOffset: -45, h: 30, isSpecial: true, hasArmor: true, armorFrames: 10, isDash: true, isSkullArm: true },
+  // Marrow Spike — bone spike erupts from the ground. Slow but unblockable
+  marrowSpike: { damage: 130, startup: 22, active: 4, recovery: 26, hitstun: 40, blockstun: 16, pushback: 30, type: 'unblockable', reach: 55, yOffset: -20, h: 40, isSpecial: true, isSkullArm: true },
+  // Blood Frenzy — mutation surges, multi-hit flurry as the arm spasms
+  bloodFrenzy: { damage: 35, startup: 14, active: 12, recovery: 24, hitstun: 26, blockstun: 16, pushback: 20, type: 'mid', reach: 50, yOffset: -50, h: 20, isSpecial: true, multiHit: 4, isSkullArm: true },
+  // TOTAL OUTBREAK — mutation erupts, 28-frame bone and blood barrage
+  super: { damage: 280, startup: 6, active: 28, recovery: 34, hitstun: 40, blockstun: 18, pushback: 100, type: 'mid', reach: 95, yOffset: -55, h: 55, isSuper: true, isSkullArm: true },
+  // DEAD MAN'S HAND — skull detaches on tether, flail swings, unblockable
+  ultimate: { damage: 0, startup: 8, active: 6, recovery: 48, hitstun: 60, blockstun: 0, pushback: 0, type: 'unblockable', reach: 60, yOffset: -45, h: 25, isSuper: true, isUltimate: true, isGrab: true, isSkullArm: true },
 };
 
 const REKT_CANCELS = {
-  lp: ['lp', 'mp', 'lk', 'mk', 'glitchPunch'],
-  mp: ['hp', 'mk', 'hk', 'glitchPunch', 'systemError'],
-  hp: ['glitchPunch', 'systemError', 'super'],
+  lp: ['lp', 'mp', 'lk', 'mk', 'boneLash'],
+  mp: ['hp', 'mk', 'hk', 'boneLash', 'skullRush'],
+  hp: ['boneLash', 'skullRush', 'bloodFrenzy', 'super', 'ultimate'],
   lk: ['lk', 'mk', 'lp', 'mp'],
-  mk: ['hk', 'hp', 'glitchPunch'],
-  hk: ['glitchPunch', 'systemError', 'super'],
-  glitchPunch: ['super'],
-  systemError: ['super'],
+  mk: ['hk', 'hp', 'boneLash'],
+  hk: ['boneLash', 'skullRush', 'super', 'ultimate'],
+  boneLash: ['bloodFrenzy', 'super', 'ultimate'],
+  skullRush: ['super', 'ultimate'],
+  bloodFrenzy: ['super', 'ultimate'],
 };
 
 const REKT_QUOTES = [
-  "Arm's acting up again. Your problem now.",
-  "I didn't plan that. Worked out though.",
-  "Nothing works right. Especially me.",
-  "You want predictable? Fight someone else.",
+  "Arm's getting worse. Your face didn't help.",
+  "I didn't throw that last punch. It did.",
+  "Nothing kills me. That's the problem.",
+  "You want predictable? Fight someone whose arm isn't growing a skull.",
 ];
 
 // ============================================================
@@ -876,7 +887,7 @@ const CHARACTERS = {
 // CHARACTER SELECT ROSTER
 // ============================================================
 const ROSTER = [
-  { id: 'rekt',       name: 'REKT',           tagline: 'Nothing is going right.',                archetype: 'RUSHDOWN / WILDCARD',      color: '#00ff88', playable: true,  faction: 'street' },
+  { id: 'rekt',       name: 'REKT',           tagline: 'Nothing kills me. That\'s the problem.', archetype: 'RUSHDOWN / WILDCARD',      color: '#00ff88', playable: true,  faction: 'street' },
   { id: 'diamond',    name: 'DIAMOND',        tagline: 'Cut from the hardest stone.',            archetype: 'SPEED / PRECISION',        color: '#88ddff', playable: false, faction: 'street' },
   { id: 'gabos',      name: 'GABOS',          tagline: 'The Game Ain\'t Based On Sympathy.',     archetype: 'GRAPPLER / COUNTER',       color: '#ff9933', playable: true,  faction: 'street' },
   { id: 'degenerate', name: 'DEGENERATE',     tagline: 'One more hit.',                          archetype: 'STANCE / MUTATION',        color: '#66ff33', playable: true,  faction: 'street' },
@@ -952,6 +963,9 @@ class Fighter {
     this.counterTriggered = false;
     this.grabTarget = null;
     this.grabAnim = 0;
+    // Rekt Mutation Gauge — fills from violence, 3 stages: Dormant(0-33) Awakening(34-66) Feral(67+)
+    this.mutationGauge = 0; // 0-100
+    this.deadMansHandTarget = null; // target ref for DEAD MAN'S HAND ultimate
     // Pithead KET (Kinetic Energy Tech) meter
     this.ketMeter = 0; // 0-100, builds from movement and attacks
     this.ketGlow = 0;
@@ -1011,8 +1025,11 @@ class Fighter {
     }
     const atk = this.char.attacks[name];
     if (!atk) return false;
+    if (name === 'ultimate' && this.charId === 'rekt' && this.mutationGauge < 67) return false;
     if (name === 'super' && this.meter < 400) return false;
     if (name === 'super') this.meter -= 400;
+    if (atk.isUltimate && this.meter < 400) return false;
+    if (atk.isUltimate) this.meter -= 400;
     if (atk.isSpecial && this.meter < 100) return false;
     if (atk.isSpecial) this.meter -= 100;
     this.state = 'attack';
@@ -1081,8 +1098,12 @@ class Fighter {
       spawnParticles(this.x, this.y - 50, '#4488ff', 3);
       return 'blocked';
     }
+    // Rekt Feral vulnerability — mutation consuming him, takes 15% more damage
+    if (this.charId === 'rekt' && this.mutationGauge >= 67) damage = Math.floor(damage * 1.15);
     this.health = Math.max(0, this.health - damage);
     this.meter = Math.min(400, this.meter + Math.floor(damage * 0.25 * this.char.meterGain));
+    // Rekt mutation feeds on violence — grows when taking damage
+    if (this.charId === 'rekt') this.mutationGauge = Math.min(100, this.mutationGauge + damage * 0.06);
     if (launches || isSuper) {
       this.vy = -12 / this.char.weight;
       this.vx = attackerFacing * pushback * 0.5;
@@ -1155,7 +1176,10 @@ class Fighter {
         if (atk) {
           if (atk.hasArmor && this.attackFrame >= atk.armorFrames) this.armorActive = false;
           if (atk === GABOS_ATTACKS.shortSell && this.attackFrame >= atk.startup && this.attackFrame < atk.startup + atk.active) this.vx = this.facing * 6;
-          if (atk === REKT_ATTACKS.systemError && this.attackFrame < atk.startup + atk.active) { this.vy = -4; this.onGround = false; }
+          // Skull Rush — shoulder charge, dash forward during active frames
+          if (atk === REKT_ATTACKS.skullRush && this.attackFrame >= atk.startup && this.attackFrame < atk.startup + atk.active) { this.vx = this.facing * 8; }
+          // Blood Frenzy — multi-hit flurry; hits scale with mutation stage
+          if (atk === REKT_ATTACKS.bloodFrenzy && this.attackFrame % 4 === 0 && this.attackFrame >= atk.startup && this.attackFrame < atk.startup + atk.active) { this.hasHit = false; this.mutationGauge = Math.min(100, this.mutationGauge + 1); }
           // Pithead: Overclock dash movement (speed scales with KET)
           if (atk === PITHEAD_ATTACKS.overclock && this.attackFrame >= atk.startup && this.attackFrame < atk.startup + atk.active) {
             this.vx = this.facing * (6 + (this.ketMeter / 100) * 5);
@@ -1203,6 +1227,21 @@ class Fighter {
                 this.proofOfWorkDrain = (this.proofOfWorkDrain || 0) + drainPerFrame;
                 this.ketMeter = Math.min(100, this.ketMeter + 2); // mined health becomes KET
               }
+            }
+          }
+          // Rekt: DEAD MAN'S HAND — skull detaches on tether, flail swings
+          if (atk === REKT_ATTACKS.ultimate) {
+            if (this.attackFrame >= atk.startup && this.attackFrame < atk.startup + atk.active) {
+              if (this.deadMansHandTarget) {
+                const drainPerFrame = 12;
+                this.deadMansHandTarget.health = Math.max(0, this.deadMansHandTarget.health - drainPerFrame);
+                this.mutationGauge = Math.min(100, this.mutationGauge + 1.5);
+                if (this.attackFrame % 3 === 0) spawnParticles(this.deadMansHandTarget.x, this.deadMansHandTarget.y - 50, '#cc2222', 4);
+              }
+            }
+            if (this.attackFrame >= atk.startup + atk.active) {
+              this.deadMansHandTarget = null;
+              screenShake.duration = 8; screenShake.x = 6;
             }
           }
           // Degenerate: Mutation Roulette — roll random buff at midpoint
@@ -1310,6 +1349,14 @@ class Fighter {
     }
     if (this.state === 'idle' || this.state === 'walk') this.meter = Math.min(400, this.meter + 0.12 * this.char.meterGain);
     if (this.state === 'attack' && this.attackFrame === 1) this.meter = Math.min(400, this.meter + 6 * this.char.meterGain);
+    // Rekt Mutation Gauge — fills passively and from combat
+    if (this.charId === 'rekt') {
+      // Passive build during combat (slow trickle)
+      if (this.state === 'idle' || this.state === 'walk') this.mutationGauge = Math.min(100, this.mutationGauge + 0.04);
+      // Build on attacking
+      if (this.state === 'attack' && this.attackFrame === 1) this.mutationGauge = Math.min(100, this.mutationGauge + 2);
+      // Build more on hitting (handled in hit resolution)
+    }
     // Pithead KET meter — builds from movement, attacks, decays slowly on idle
     if (this.charId === 'pithead') {
       if (this.state === 'walk' || this.state === 'jump') this.ketMeter = Math.min(100, this.ketMeter + 0.25);
@@ -1403,7 +1450,16 @@ class Fighter {
     const armGY = this.armGlitchTimer > 0 ? this.armGlitch * 0.4 : 0;
     let legOff = this.state === 'walk' ? Math.sin(this.walkCycle * 3) * 10 : 0;
     let armBob = this.state === 'walk' ? Math.sin(this.walkCycle * 3 + Math.PI) * 5 : 0;
+    // Mutation stage visuals
+    const mutPct = this.mutationGauge / 100;
+    const isFeral = mutPct >= 0.67;
+    const isAwakening = mutPct >= 0.34;
+    const skullColor = isFeral ? '#ff2222' : isAwakening ? '#cc4422' : '#E8D8C0'; // bone ivory → blood red
+    const muscleColor = isFeral ? '#cc2222' : isAwakening ? '#993322' : '#882222';
+    // Left arm (skull arm) is thicker — the -f side
+    const skullArmWidth = isFeral ? 5 : isAwakening ? 4.2 : 3.5;
     ctx.strokeStyle = color; ctx.lineWidth = 2.5;
+    // --- LEGS ---
     if (isAttacking && this.attackName.includes('k')) {
       const ext = inActive ? 1 : (frame < atk.startup ? frame / atk.startup : Math.max(0, 1 - (frame - atk.startup - atk.active) / atk.recovery));
       ctx.beginPath(); ctx.moveTo(f * 3, bodyBotY); ctx.lineTo(f * (25 + ext * 35), bodyBotY + 5 - ext * 15); ctx.stroke();
@@ -1413,48 +1469,119 @@ class Fighter {
       ctx.beginPath(); ctx.moveTo(5, bodyBotY); ctx.lineTo(8 + legOff, 0); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(-5, bodyBotY); ctx.lineTo(-8 - legOff, 0); ctx.stroke();
     }
+    // --- TORSO ---
     ctx.strokeStyle = color; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(0, bodyTopY); ctx.lineTo(0, bodyBotY); ctx.stroke();
+    // Chest scar / secondary mutation site
+    if (isAwakening) {
+      ctx.fillStyle = muscleColor; ctx.globalAlpha = 0.5 + mutPct * 0.3;
+      ctx.beginPath(); ctx.arc(0, bodyTopY + 12, 3 + mutPct * 2, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    // --- ARMS ---
     if (isAttacking && (this.attackName.includes('p') || (atk && (atk.isSpecial || atk.isSuper)))) {
       const ext = inActive ? 1 : (frame < atk.startup ? frame / atk.startup * 0.6 : Math.max(0, 1 - (frame - atk.startup - atk.active) / atk.recovery));
-      ctx.strokeStyle = inActive ? this.char.accent : color;
-      ctx.lineWidth = atk.isSuper ? 4.5 : atk.isSpecial ? 3.5 : 3;
+      const isSkullAtk = atk && atk.isSkullArm;
+      ctx.strokeStyle = inActive ? (isSkullAtk ? muscleColor : this.char.accent) : (isSkullAtk ? skullColor : color);
+      ctx.lineWidth = isSkullAtk ? skullArmWidth + 1 : (atk.isSuper ? 4.5 : atk.isSpecial ? 3.5 : 3);
       const px = f * (15 + ext * (atk.reach || 40)) + armGX;
       const py = bodyTopY + 8 + armGY;
-      ctx.beginPath(); ctx.moveTo(f * 5, bodyTopY + 5); ctx.lineTo(px, py); ctx.stroke();
+      // Skull arm leads the attack
+      ctx.beginPath(); ctx.moveTo(-f * 5, bodyTopY + 5); ctx.lineTo(px, py); ctx.stroke();
+      // Exposed muscle fibre trails on skull arm attacks
+      if (isSkullAtk && inActive) {
+        ctx.strokeStyle = muscleColor; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.6;
+        for (let i = 0; i < 3; i++) {
+          const ox = (Math.random() - 0.5) * 8, oy = (Math.random() - 0.5) * 6;
+          ctx.beginPath(); ctx.moveTo(-f * 5 + ox, bodyTopY + 5 + oy); ctx.lineTo(px * 0.6 + ox, py + oy); ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
       if (inActive) {
-        ctx.fillStyle = atk.isSuper ? '#ffcc00' : this.char.accent;
+        ctx.fillStyle = isSkullAtk ? '#cc2222' : (atk.isSuper ? '#ffcc00' : this.char.accent);
         ctx.globalAlpha = 0.5 + Math.random() * 0.5;
         ctx.beginPath(); ctx.arc(px, py, atk.isSuper ? 14 : atk.isSpecial ? 10 : 6, 0, Math.PI * 2); ctx.fill();
         ctx.globalAlpha = 1;
         if (atk.isSpecial || atk.isSuper) {
-          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+          ctx.strokeStyle = isSkullAtk ? '#ff4444' : '#fff'; ctx.lineWidth = 1;
           for (let i = 0; i < 3; i++) { const a = Math.random() * Math.PI * 2, l = 8 + Math.random() * 10; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(a) * l, py + Math.sin(a) * l); ctx.stroke(); }
         }
+        // Skull growth impact flash at feral
+        if (isFeral && isSkullAtk) {
+          ctx.fillStyle = '#ff0000'; ctx.globalAlpha = 0.3;
+          ctx.beginPath(); ctx.arc(px, py, 18, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = 1;
+        }
       }
+      // Right arm (normal) hangs back
       ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.moveTo(-f * 5, bodyTopY + 5); ctx.lineTo(-f * 14 + armBob, bodyBotY - 5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(f * 5, bodyTopY + 5); ctx.lineTo(f * 14 + armBob, bodyBotY - 5); ctx.stroke();
     } else {
+      // Right arm (normal, thinner)
       ctx.strokeStyle = color; ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.moveTo(f * 5, bodyTopY + 5); ctx.lineTo(f * 17 + armBob + armGX, bodyTopY + 20 + armGY); ctx.stroke();
-      ctx.lineWidth = 3.5;
+      ctx.beginPath(); ctx.moveTo(f * 5, bodyTopY + 5); ctx.lineTo(f * 17 + armBob, bodyTopY + 20); ctx.stroke();
+      // Left arm (skull arm — thicker, mutated)
+      ctx.strokeStyle = skullColor; ctx.lineWidth = skullArmWidth;
       ctx.beginPath(); ctx.moveTo(-f * 5, bodyTopY + 5); ctx.lineTo(-f * 15 - armBob + armGX * 0.5, bodyTopY + 18 + armGY * 0.5); ctx.stroke();
+      // Exposed muscle fibres on skull arm
+      ctx.strokeStyle = muscleColor; ctx.lineWidth = 1; ctx.globalAlpha = 0.4 + mutPct * 0.3;
+      ctx.beginPath(); ctx.moveTo(-f * 7, bodyTopY + 8); ctx.lineTo(-f * 14 - armBob, bodyTopY + 16); ctx.stroke();
+      ctx.globalAlpha = 1;
+      // Skull growth on shoulder
+      const skullX = -f * 8;
+      const skullY = bodyTopY + 2;
+      const skullR = 4 + mutPct * 3;
+      ctx.strokeStyle = skullColor; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(skullX, skullY, skullR, 0, Math.PI * 2); ctx.stroke();
+      // Eye sockets
+      ctx.fillStyle = isFeral ? '#ff0000' : (isAwakening ? '#440000' : '#222');
+      ctx.beginPath(); ctx.arc(skullX - f * 1.5, skullY - 1, 1, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(skullX + f * 1.5, skullY - 1, 1, 0, Math.PI * 2); ctx.fill();
+      // Feral: glowing eye sockets pulse
+      if (isFeral) {
+        ctx.fillStyle = '#ff0000'; ctx.globalAlpha = 0.3 + Math.sin(this.animTimer * 0.2) * 0.2;
+        ctx.beginPath(); ctx.arc(skullX, skullY, skullR + 3, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+      // Awakening+: bone spurs on forearm
+      if (isAwakening) {
+        ctx.strokeStyle = skullColor; ctx.lineWidth = 1;
+        const spurX = -f * 12, spurY = bodyTopY + 14;
+        ctx.beginPath(); ctx.moveTo(spurX, spurY); ctx.lineTo(spurX - f * 3, spurY - 4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(spurX + f * 2, spurY + 2); ctx.lineTo(spurX - f * 1, spurY - 2); ctx.stroke();
+      }
       if (this.armGlitchTimer > 0) {
-        ctx.strokeStyle = this.char.accent; ctx.lineWidth = 1; ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = muscleColor; ctx.lineWidth = 1; ctx.globalAlpha = 0.5;
         ctx.beginPath(); ctx.moveTo(-f * 5, bodyTopY + 5); ctx.lineTo(-f * 15 - armBob + armGX, bodyTopY + 18 + armGY); ctx.stroke();
         ctx.globalAlpha = 1;
       }
     }
+    // --- HEAD ---
     ctx.strokeStyle = color; ctx.lineWidth = 2.5;
     const headBob = this.state === 'hitstun' ? (Math.random() - 0.5) * 3 : 0;
     ctx.beginPath(); ctx.arc(headBob, headY, 9, 0, Math.PI * 2); ctx.stroke();
+    // Headband (red — bloodstained)
+    ctx.strokeStyle = '#cc2222'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(headBob, headY, 9, -0.3, Math.PI + 0.3, true); ctx.stroke();
+    // Headband tail
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(headBob - f * 9, headY); ctx.lineTo(headBob - f * 16, headY + 4 + Math.sin(this.animTimer * 0.1) * 2); ctx.stroke();
+    // Eyes
     ctx.fillStyle = this.state === 'hitstun' ? '#ff0033' : this.char.accent;
-    ctx.beginPath(); ctx.arc(f * 3, headY - 2, 1.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(f * 7, headY - 2, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(headBob + f * 3, headY - 2, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(headBob + f * 7, headY - 2, 1.5, 0, Math.PI * 2); ctx.fill();
+    // Super-ready glow
     if (this.meter >= 400) {
       ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 1;
       ctx.globalAlpha = 0.25 + Math.sin(this.animTimer * 0.15) * 0.15;
       ctx.beginPath(); ctx.ellipse(0, bodyBotY + 5, 22, 48, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    // Feral aura — body horror escalation
+    if (isFeral) {
+      ctx.strokeStyle = '#ff220044'; ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.15 + Math.sin(this.animTimer * 0.12) * 0.1;
+      ctx.beginPath(); ctx.ellipse(0, bodyBotY + 5, 26, 52, 0, 0, Math.PI * 2); ctx.stroke();
       ctx.globalAlpha = 1;
     }
   }
@@ -2387,8 +2514,27 @@ function drawHUD() {
   [p1, p2].forEach((f, i) => {
     if (f.state === 'attack' && f.attackData) {
       const name = f.attackName.toUpperCase().replace(/([A-Z])/g, ' $1').trim();
-      const displayName = f.attackData.isSuper ? (f.charId === 'rekt' ? 'FULL SYSTEM CRASH' : f.charId === 'gabos' ? 'DEAD CAT BOUNCE' : f.charId === 'pithead' ? (f.attackData.isUltimate ? 'PROOF OF WORK' : '51% ATTACK') : f.charId === 'degenerate' ? (f.attackData.isUltimate ? 'TOTAL MELTDOWN' : 'BAD TRIP') : 'SUPER') : f.attackData.isSpecial ? name : '';
+      const displayName = f.attackData.isSuper ? (f.charId === 'rekt' ? (f.attackData.isUltimate ? 'DEAD MAN\'S HAND' : 'TOTAL OUTBREAK') : f.charId === 'gabos' ? 'DEAD CAT BOUNCE' : f.charId === 'pithead' ? (f.attackData.isUltimate ? 'PROOF OF WORK' : '51% ATTACK') : f.charId === 'degenerate' ? (f.attackData.isUltimate ? 'TOTAL MELTDOWN' : 'BAD TRIP') : 'SUPER') : f.attackData.isSpecial ? name : '';
       if (displayName) { ctx.font = '8px "Press Start 2P", monospace'; ctx.fillStyle = f.attackData.isSuper ? '#ffcc00' : f.char.accent; ctx.textAlign = 'center'; ctx.globalAlpha = 0.7; ctx.fillText(displayName, f.x, f.y - f.height - 15); ctx.globalAlpha = 1; }
+    }
+    // Rekt Mutation Gauge display
+    if (f.charId === 'rekt') {
+      const mX = i === 0 ? 50 : GAME_W - 50 - 120;
+      const mY = 68;
+      const mutPct = f.mutationGauge / 100;
+      const stage = mutPct >= 0.67 ? 'FERAL' : mutPct >= 0.34 ? 'AWAKEN' : 'DORMANT';
+      const stageCol = mutPct >= 0.67 ? '#ff2222' : mutPct >= 0.34 ? '#cc4422' : '#882222';
+      ctx.font = '6px "Press Start 2P", monospace'; ctx.fillStyle = stageCol; ctx.textAlign = 'left';
+      ctx.fillText('MUT', mX, mY - 2);
+      ctx.fillStyle = '#111'; ctx.fillRect(mX + 28, mY - 8, 92, 8);
+      ctx.fillStyle = stageCol; ctx.fillRect(mX + 28, mY - 8, 92 * mutPct, 8);
+      // Stage threshold markers
+      ctx.fillStyle = '#333';
+      ctx.fillRect(mX + 28 + 92 * 0.34, mY - 8, 1, 8);
+      ctx.fillRect(mX + 28 + 92 * 0.67, mY - 8, 1, 8);
+      ctx.strokeStyle = '#333'; ctx.lineWidth = 1; ctx.strokeRect(mX + 28, mY - 8, 92, 8);
+      ctx.font = '5px "Press Start 2P", monospace'; ctx.fillStyle = stageCol;
+      ctx.fillText(stage, mX + 55, mY - 1);
     }
     // Pithead KET meter display
     if (f.charId === 'pithead') {
@@ -2675,14 +2821,37 @@ function drawCharSelectStickman(cx, cy, charData, scale, animT) {
 
   if (charData.id === 'rekt') {
     ctx.lineWidth = 2 * s;
+    // Head with red headband
     ctx.beginPath(); ctx.arc(0, -30 * s + bob, 6 * s, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = '#cc2222'; ctx.lineWidth = 1.5 * s;
+    ctx.beginPath(); ctx.arc(0, -30 * s + bob, 6 * s, -0.3, Math.PI + 0.3, true); ctx.stroke();
+    // Headband tail
+    ctx.lineWidth = 1 * s;
+    ctx.beginPath(); ctx.moveTo(-6 * s, -30 * s + bob); ctx.lineTo(-10 * s, -28 * s + bob + Math.sin(animT * 0.1) * 1.5); ctx.stroke();
+    ctx.strokeStyle = color; ctx.lineWidth = 2 * s;
+    // Body
     ctx.beginPath(); ctx.moveTo(0, -24 * s + bob); ctx.lineTo(0, -6 * s + bob); ctx.stroke();
+    // Legs
     ctx.beginPath(); ctx.moveTo(0, -6 * s + bob); ctx.lineTo(-6 * s, 4 * s); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0, -6 * s + bob); ctx.lineTo(6 * s, 4 * s); ctx.stroke();
+    // Right arm (normal)
     ctx.beginPath(); ctx.moveTo(0, -20 * s + bob); ctx.lineTo(8 * s, -14 * s + bob); ctx.stroke();
-    ctx.lineWidth = 3 * s;
+    // Left arm (skull arm — thicker, bone-coloured)
+    ctx.strokeStyle = '#E8D8C0'; ctx.lineWidth = 3.5 * s;
     ctx.beginPath(); ctx.moveTo(0, -20 * s + bob); ctx.lineTo(-8 * s, -12 * s + bob); ctx.stroke();
-    if (Math.sin(animT * 0.15 + cx) > 0.7) { ctx.strokeStyle = '#00ffcc'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-9 * s, -13 * s + bob); ctx.lineTo(-12 * s, -16 * s + bob); ctx.stroke(); }
+    // Skull growth on shoulder
+    ctx.strokeStyle = '#E8D8C0'; ctx.lineWidth = 1.2 * s;
+    ctx.beginPath(); ctx.arc(-3 * s, -21 * s + bob, 3 * s, 0, Math.PI * 2); ctx.stroke();
+    // Skull eye sockets — glow red periodically
+    if (Math.sin(animT * 0.15 + cx) > 0.5) {
+      ctx.fillStyle = '#ff2222'; ctx.globalAlpha = 0.7;
+      ctx.beginPath(); ctx.arc(-3.5 * s, -21.5 * s + bob, 0.8 * s, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(-1.5 * s, -21.5 * s + bob, 0.8 * s, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = locked ? 0.25 : 1;
+    }
+    // Exposed muscle fibres
+    ctx.strokeStyle = '#882222'; ctx.lineWidth = 0.8 * s;
+    ctx.beginPath(); ctx.moveTo(-2 * s, -19 * s + bob); ctx.lineTo(-6 * s, -13 * s + bob); ctx.stroke();
   } else if (charData.id === 'gabos') {
     ctx.lineWidth = 2.5 * s;
     ctx.strokeRect(-5 * s, -33 * s + bob, 10 * s, 9 * s);
@@ -2971,6 +3140,7 @@ function updateDemo() {
     p1.x = 320; p1.y = GROUND_Y; p1.vx = 0; p1.vy = 0;
     p1.state = 'idle'; p1.health = p1.maxHealth; p1.meter = 400;
     if (p1.charId === 'pithead') p1.ketMeter = 100;
+    if (p1.charId === 'rekt') p1.mutationGauge = 80; // demo at Feral stage
     p2.x = 620; p2.y = GROUND_Y; p2.vx = 0; p2.vy = 0;
     p2.state = 'idle'; p2.health = p2.maxHealth;
     p2.knockdownTimer = 0; p2.stunTimer = 0; p2.flickerTimer = 0;
@@ -2992,6 +3162,7 @@ function updateDemo() {
         // Ensure meter is full for specials/supers
         p1.meter = 400;
         if (p1.charId === 'pithead') p1.ketMeter = 100;
+        if (p1.charId === 'rekt') p1.mutationGauge = 80;
         // For grabs and close-range moves, bring dummy closer
         const atk = p1.char.attacks[move.key];
         if (atk && (atk.isGrab || atk.reach < 50)) {
@@ -3524,13 +3695,18 @@ function processAttacks(fighter, playerIndex) {
   const inp = getInput(playerIndex);
   const charId = fighter.charId;
   if (charId === 'rekt') {
-    if (consumePress(inp.super)) fighter.startAttack('super');
+    if (consumePress(inp.super)) {
+      if (fighter.isCrouching && fighter.meter >= 400 && fighter.mutationGauge >= 67) fighter.startAttack('ultimate');
+      else fighter.startAttack('super');
+    }
     else if (consumePress(inp.special)) {
       const opp = playerIndex === 0 ? p2 : p1;
       const dist = Math.abs(fighter.x - opp.x);
-      if (dist < 60) fighter.startAttack('malfunction');
-      else if (fighter.isCrouching) fighter.startAttack('glitchPunch');
-      else fighter.startAttack('systemError');
+      const holdFwd = (fighter.facing > 0 && inp.right) || (fighter.facing < 0 && inp.left);
+      if (holdFwd) fighter.startAttack('skullRush');
+      else if (dist < 60) fighter.startAttack('marrowSpike');
+      else if (fighter.isCrouching) fighter.startAttack('boneLash');
+      else fighter.startAttack('bloodFrenzy');
     }
     else if (consumePress(inp.hp)) fighter.startAttack('hp');
     else if (consumePress(inp.mp)) fighter.startAttack('mp');
@@ -3620,8 +3796,19 @@ function checkHits(attacker, defender, defenderIndex) {
   const hitbox = attacker.getHitbox();
   const hurtbox = defender.getHurtbox();
   if (boxOverlap(hitbox, hurtbox)) {
-    const result = defender.takeDamage(atk.damage, atk.hitstun, atk.pushback, attacker.facing, atk.launches, atk.isSuper, atk.isGrab, attacker);
+    // Rekt mutation damage scaling: skull arm attacks gain damage per mutation stage
+    let dmg = atk.damage;
+    if (attacker.charId === 'rekt' && atk.isSkullArm) {
+      const stage = attacker.mutationGauge >= 67 ? 2 : attacker.mutationGauge >= 34 ? 1 : 0;
+      dmg = Math.floor(dmg * (1 + stage * 0.12)); // +12% per stage
+    }
+    const result = defender.takeDamage(dmg, atk.hitstun, atk.pushback, attacker.facing, atk.launches, atk.isSuper, atk.isGrab, attacker);
     attacker.hasHit = true; attacker.canCancel = true;
+    // Rekt DEAD MAN'S HAND — store target for skull flail damage
+    if (atk.isUltimate && attacker.charId === 'rekt') {
+      attacker.deadMansHandTarget = defender;
+      attacker.hasHit = false;
+    }
     // Pithead PROOF OF WORK — store target for continuous health drain
     if (atk.isUltimate && attacker.charId === 'pithead') {
       attacker.proofOfWorkTarget = defender;
@@ -3637,6 +3824,8 @@ function checkHits(attacker, defender, defenderIndex) {
     const cc = comboCounters[defenderIndex];
     if (result === 'hit' || result === 'grabbed') {
       attacker.meter = Math.min(400, attacker.meter + Math.floor(atk.damage * 0.2 * attacker.char.meterGain));
+      // Rekt mutation feeds on dealing damage
+      if (attacker.charId === 'rekt') attacker.mutationGauge = Math.min(100, attacker.mutationGauge + atk.damage * 0.04);
       cc.count++; cc.damage += atk.damage; cc.timer = 60;
     } else { cc.count = 0; cc.damage = 0; }
   }
