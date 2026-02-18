@@ -634,7 +634,7 @@ function drawLevelSelect() {
 
   // Bottom info panel for selected stage
   const selStage = STAGES[levelSelectState.cursor];
-  const infoPanelY = startY + rows * (cardH + cardGap) + 10;
+  const infoPanelY = startY + rows * (cardH + cardGap) + 2;
 
   ctx.font = '9px "Share Tech Mono", monospace';
   ctx.fillStyle = selStage.available ? selStage.color : '#444';
@@ -646,13 +646,14 @@ function drawLevelSelect() {
   ctx.font = '8px "Press Start 2P", monospace';
   ctx.fillStyle = '#ffcc00';
   ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
   if (levelSelectState.confirmed) {
-    ctx.fillText('STAGE SET — LOADING...', GAME_W / 2, GAME_H - 30);
+    ctx.fillText('STAGE SET — LOADING...', GAME_W / 2, GAME_H - 18);
   } else {
-    ctx.fillText(selStage.available ? 'ENTER TO CONFIRM' : 'STAGE LOCKED', GAME_W / 2, GAME_H - 30);
+    ctx.fillText(selStage.available ? 'ENTER TO CONFIRM' : 'STAGE LOCKED', GAME_W / 2, GAME_H - 18);
     ctx.font = '7px "Share Tech Mono", monospace';
     ctx.fillStyle = '#333';
-    ctx.fillText('← → TO BROWSE  |  BACKSPACE TO GO BACK', GAME_W / 2, GAME_H - 14);
+    ctx.fillText('← → TO BROWSE  |  BACKSPACE TO GO BACK', GAME_W / 2, GAME_H - 6);
   }
 }
 
@@ -2968,11 +2969,20 @@ function drawCharacterSelect() {
         ctx.fillStyle='#111'; ctx.fillRect(sx+30,sy+i*16+1,sw-30,7); ctx.fillStyle=ch.color; ctx.fillRect(sx+30,sy+i*16+1,(sw-30)*Math.min(1,st.val),7);
       });
     } else { ctx.font='8px "Press Start 2P", monospace'; ctx.fillStyle='#333'; ctx.textAlign='center'; ctx.fillText('LOCKED',panelX+panelW/2,pY+185); }
-    if (selObj.locked) { ctx.font='8px "Press Start 2P", monospace'; ctx.fillStyle=ch.color; ctx.textAlign='center'; ctx.fillText('\u2713 READY',panelX+panelW/2,pY+panelH-14); }
+    if (selObj.locked) { ctx.font='8px "Press Start 2P", monospace'; ctx.fillStyle=ch.color; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('\u2713 READY',panelX+panelW/2,pY+panelH-4); }
   }
   drawPanel(selectState.p1.row*GRID_COLS+selectState.p1.col, gridX-panelW-16, '#0a1210', '#00ff8844', selectState.p1);
   drawPanel(selectState.p2.row*GRID_COLS+selectState.p2.col, gridX+GRID_COLS*cellW+16, '#120a06', '#ff993344', selectState.p2);
-  ctx.font='28px "Press Start 2P", monospace'; ctx.fillStyle='#ff003366'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('VS',GAME_W/2,GAME_H/2);
+  ctx.save();
+  ctx.font='48px "Press Start 2P", monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  const vsY = gridY + GRID_ROWS * cellH + 36;
+  const vsGlow = 0.6 + Math.sin(selectState.timer * 0.08) * 0.2;
+  ctx.shadowColor = '#ff0033'; ctx.shadowBlur = 30 * vsGlow;
+  ctx.fillStyle = 'rgba(255,0,51,' + (0.25 + vsGlow * 0.15) + ')';
+  ctx.fillText('VS', GAME_W / 2, vsY);
+  ctx.shadowBlur = 15 * vsGlow;
+  ctx.fillText('VS', GAME_W / 2, vsY);
+  ctx.restore();
   ctx.font='8px "Press Start 2P", monospace'; ctx.textAlign='center'; ctx.textBaseline='bottom';
   if (selectState.p1.locked && selectState.p2.locked) { ctx.fillStyle='#ffcc00'; ctx.fillText('PRESS ENTER TO CONTINUE',GAME_W/2,GAME_H-18); }
   else if (selectState.p1.locked && !selectState.p2.locked) { ctx.fillStyle='#444'; ctx.fillText('P2: ARROWS + [ TO SELECT',GAME_W/2,GAME_H-28); ctx.fillStyle='#00ccff'; ctx.fillText('PRESS P FOR PRACTICE MODE',GAME_W/2,GAME_H-14); }
@@ -3478,6 +3488,21 @@ function drawPracticeHUD() {
   ctx.fillText('[1] Dummy  [2] Meter  [3] HP Reset  [4] Commands  [5] Reset Pos  [6] Demo  [ESC] Exit', GAME_W - 16, GAME_H - 40);
   ctx.fillText('[9/0] Scroll Command List', GAME_W - 16, GAME_H - 30);
 
+  // Fighter state display
+  ctx.font = '6px "Share Tech Mono", monospace';
+  ctx.fillStyle = '#666';
+  ctx.textAlign = 'left';
+  ctx.fillText('STATE: ' + p1.state.toUpperCase() + (p1.attackName ? ' (' + p1.attackName + ')' : ''), 16, GAME_H - 140);
+  if (p1.state === 'attack' && p1.attackData) {
+    const atk = p1.attackData;
+    const frame = p1.attackFrame;
+    let phase = 'STARTUP';
+    if (frame >= atk.startup && frame < atk.startup + atk.active) phase = 'ACTIVE';
+    else if (frame >= atk.startup + atk.active) phase = 'RECOVERY';
+    ctx.fillStyle = phase === 'ACTIVE' ? '#ff3333' : phase === 'STARTUP' ? '#ffcc00' : '#0088ff';
+    ctx.fillText('FRAME: ' + frame + '/' + (atk.startup + atk.active + atk.recovery) + ' [' + phase + ']', 16, GAME_H - 130);
+  }
+
   // Input history display
   if (practiceState.inputHistory.length > 0) {
     ctx.font = '7px "Press Start 2P", monospace';
@@ -3495,21 +3520,6 @@ function drawPracticeHUD() {
       hx += ctx.measureText(h.label + ' ').width + 4;
     });
     ctx.globalAlpha = 1;
-  }
-
-  // Fighter state display
-  ctx.font = '6px "Share Tech Mono", monospace';
-  ctx.fillStyle = '#666';
-  ctx.textAlign = 'left';
-  ctx.fillText('STATE: ' + p1.state.toUpperCase() + (p1.attackName ? ' (' + p1.attackName + ')' : ''), 16, GAME_H - 120);
-  if (p1.state === 'attack' && p1.attackData) {
-    const atk = p1.attackData;
-    const frame = p1.attackFrame;
-    let phase = 'STARTUP';
-    if (frame >= atk.startup && frame < atk.startup + atk.active) phase = 'ACTIVE';
-    else if (frame >= atk.startup + atk.active) phase = 'RECOVERY';
-    ctx.fillStyle = phase === 'ACTIVE' ? '#ff3333' : phase === 'STARTUP' ? '#ffcc00' : '#0088ff';
-    ctx.fillText('FRAME: ' + frame + '/' + (atk.startup + atk.active + atk.recovery) + ' [' + phase + ']', 16, GAME_H - 110);
   }
 
   // Command list panel (right side)
