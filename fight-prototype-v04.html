@@ -1484,7 +1484,11 @@ class Fighter {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.scale(2, 2);
-    if (this.charId === 'rekt') this.drawSkullArm();
+    if (this.charId === 'rekt') {
+      // Use sprites if loaded, fall back to procedural drawing
+      if (skullArmSpritesLoaded >= skullArmSpritesTotal && skullArmSpritesTotal > 0) this.drawSkullArm();
+      else this.drawRekt();
+    }
     else if (this.charId === 'gabos') this.drawGabos();
     else if (this.charId === 'pithead') this.drawPithead();
     else if (this.charId === 'degenerate') this.drawDegenerate();
@@ -1521,7 +1525,7 @@ class Fighter {
     if (!animData) { animKey = 'idle'; }
     const anim = SKULL_ARM_ANIMS[animKey];
     const sprites = skullArmSprites[animKey];
-    if (!sprites || sprites.length === 0) return;
+    if (!sprites || sprites.length === 0) { this.drawRekt(); return; }
 
     // Calculate current frame
     let frameIndex;
@@ -1544,7 +1548,7 @@ class Fighter {
 
     frameIndex = Math.max(0, Math.min(frameIndex, sprites.length - 1));
     const img = sprites[frameIndex];
-    if (!img || !img.complete || img.naturalWidth === 0) return;
+    if (!img || !img.complete || img.naturalWidth === 0) { this.drawRekt(); return; }
 
     // Draw sprite — sprites are 128x128, west-facing (facing left)
     // At scale 2 (from draw()), the sprite canvas is already scaled
