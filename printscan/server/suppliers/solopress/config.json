@@ -1,0 +1,50 @@
+{
+  "id": "solopress",
+  "name": "Solopress",
+  "baseUrl": "https://www.solopress.com",
+  "requiresAuth": false,
+  "products": {
+    "Business Cards": {
+      "url": "https://www.solopress.com/business-cards/",
+      "available": true
+    },
+    "Flyers/Leaflets": {
+      "url": "https://www.solopress.com/flyers/",
+      "available": true
+    },
+    "Folded Leaflets": {
+      "url": "https://www.solopress.com/folded-leaflets/",
+      "available": true
+    },
+    "Brochures/Booklets": {
+      "url": "https://www.solopress.com/booklets/",
+      "available": true
+    },
+    "Posters": {
+      "url": "https://www.solopress.com/posters/",
+      "available": true
+    },
+    "Postcards": {
+      "url": "https://www.solopress.com/postcards/",
+      "available": true
+    },
+    "Compliment Slips": {
+      "url": "https://www.solopress.com/compliment-slips/",
+      "available": true
+    },
+    "Letterheads": {
+      "url": "https://www.solopress.com/letterheads/",
+      "available": true
+    },
+    "Roller Banners": {
+      "url": "https://www.solopress.com/roller-banners/",
+      "available": true
+    }
+  },
+  "selectors": {
+    "priceDisplay": ".price, .product-price, [class*='price']",
+    "quantityInput": "input[name='quantity'], select[name='quantity'], #quantity",
+    "deliverySection": ".delivery-options, .shipping",
+    "turnaroundSection": ".turnaround, .delivery-time"
+  }
+}

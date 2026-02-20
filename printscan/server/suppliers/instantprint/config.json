@@ -1,0 +1,18 @@
+{
+  "id": "instantprint",
+  "name": "Instantprint",
+  "baseUrl": "https://www.instantprint.co.uk",
+  "requiresAuth": false,
+  "products": {
+    "Business Cards": { "url": "https://www.instantprint.co.uk/business-cards", "available": true },
+    "Flyers/Leaflets": { "url": "https://www.instantprint.co.uk/flyers", "available": true },
+    "Folded Leaflets": { "url": "https://www.instantprint.co.uk/folded-leaflets", "available": true },
+    "Brochures/Booklets": { "url": "https://www.instantprint.co.uk/booklets", "available": true },
+    "Posters": { "url": "https://www.instantprint.co.uk/posters", "available": true },
+    "Postcards": { "url": "https://www.instantprint.co.uk/postcards", "available": true },
+    "Compliment Slips": { "url": "https://www.instantprint.co.uk/compliment-slips", "available": true },
+    "Letterheads": { "url": "https://www.instantprint.co.uk/letterheads", "available": true },
+    "Roller Banners": { "url": "https://www.instantprint.co.uk/banners/roller-banners", "available": true },
+    "Stickers/Labels": { "url": "https://www.instantprint.co.uk/stickers", "available": true }
+  }
+}

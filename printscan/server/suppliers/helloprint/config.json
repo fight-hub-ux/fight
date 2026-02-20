@@ -1,0 +1,18 @@
+{
+  "id": "helloprint",
+  "name": "HelloPrint",
+  "baseUrl": "https://www.helloprint.co.uk",
+  "requiresAuth": false,
+  "products": {
+    "Business Cards": { "url": "https://www.helloprint.co.uk/business-cards", "available": true },
+    "Flyers/Leaflets": { "url": "https://www.helloprint.co.uk/flyers", "available": true },
+    "Folded Leaflets": { "url": "https://www.helloprint.co.uk/folded-leaflets", "available": true },
+    "Brochures/Booklets": { "url": "https://www.helloprint.co.uk/brochures", "available": true },
+    "Posters": { "url": "https://www.helloprint.co.uk/posters", "available": true },
+    "Postcards": { "url": "https://www.helloprint.co.uk/postcards", "available": true },
+    "Roller Banners": { "url": "https://www.helloprint.co.uk/roll-up-banners", "available": true },
+    "PVC Banners": { "url": "https://www.helloprint.co.uk/banners", "available": true },
+    "Stickers/Labels": { "url": "https://www.helloprint.co.uk/stickers", "available": true },
+    "Canvas Prints": { "url": "https://www.helloprint.co.uk/canvas-prints", "available": true }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "printuk",
+  "name": "PrintUK",
+  "baseUrl": "https://www.printuk.com",
+  "requiresAuth": false,
+  "products": {
+    "Business Cards": { "url": "https://www.printuk.com/business-cards.html", "available": true },
+    "Flyers/Leaflets": { "url": "https://www.printuk.com/flyers.html", "available": true },
+    "Folded Leaflets": { "url": "https://www.printuk.com/folded-leaflets.html", "available": true },
+    "Brochures/Booklets": { "url": "https://www.printuk.com/booklets.html", "available": true },
+    "Posters": { "url": "https://www.printuk.com/posters.html", "available": true },
+    "Postcards": { "url": "https://www.printuk.com/postcards.html", "available": true },
+    "Compliment Slips": { "url": "https://www.printuk.com/compliment-slips.html", "available": true },
+    "Letterheads": { "url": "https://www.printuk.com/letterheads.html", "available": true },
+    "Roller Banners": { "url": "https://www.printuk.com/roller-banners.html", "available": true },
+    "Stickers/Labels": { "url": "https://www.printuk.com/stickers.html", "available": true }
+  }
+}

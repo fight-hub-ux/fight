@@ -1,0 +1,19 @@
+{
+  "id": "wttb",
+  "name": "WTTB",
+  "baseUrl": "https://www.wttb.com",
+  "requiresAuth": true,
+  "products": {
+    "Business Cards": { "url": "https://www.wttb.com/business-cards", "available": true },
+    "Flyers/Leaflets": { "url": "https://www.wttb.com/flyers-leaflets", "available": true },
+    "Folded Leaflets": { "url": "https://www.wttb.com/folded-leaflets", "available": true },
+    "Brochures/Booklets": { "url": "https://www.wttb.com/booklets", "available": true },
+    "Posters": { "url": "https://www.wttb.com/posters", "available": true },
+    "Postcards": { "url": "https://www.wttb.com/postcards", "available": true },
+    "Compliment Slips": { "url": "https://www.wttb.com/compliment-slips", "available": true },
+    "Letterheads": { "url": "https://www.wttb.com/letterheads", "available": true },
+    "Roller Banners": { "url": "https://www.wttb.com/roller-banners", "available": true },
+    "PVC Banners": { "url": "https://www.wttb.com/banners", "available": true },
+    "Stickers/Labels": { "url": "https://www.wttb.com/stickers", "available": true }
+  }
+}

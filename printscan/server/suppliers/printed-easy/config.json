@@ -1,0 +1,16 @@
+{
+  "id": "printed-easy",
+  "name": "Printed Easy",
+  "baseUrl": "https://www.printedeasy.com",
+  "requiresAuth": false,
+  "products": {
+    "Business Cards": { "url": "https://www.printedeasy.com/business-cards/", "available": true },
+    "Flyers/Leaflets": { "url": "https://www.printedeasy.com/flyers/", "available": true },
+    "Folded Leaflets": { "url": "https://www.printedeasy.com/folded-leaflets/", "available": true },
+    "Brochures/Booklets": { "url": "https://www.printedeasy.com/brochures/", "available": true },
+    "Posters": { "url": "https://www.printedeasy.com/posters/", "available": true },
+    "Postcards": { "url": "https://www.printedeasy.com/postcards/", "available": true },
+    "Compliment Slips": { "url": "https://www.printedeasy.com/compliment-slips/", "available": true },
+    "Letterheads": { "url": "https://www.printedeasy.com/letterheads/", "available": true }
+  }
+}

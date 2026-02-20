@@ -1,0 +1,60 @@
+{
+  "defaultPostcode": "",
+  "defaultTurnaround": "3-5 Days",
+  "showIncVat": false,
+  "suppliers": {
+    "solopress": {
+      "enabled": true,
+      "name": "Solopress",
+      "url": "https://www.solopress.com",
+      "discount": 0,
+      "requiresAuth": false
+    },
+    "wttb": {
+      "enabled": true,
+      "name": "WTTB",
+      "url": "https://www.wttb.com",
+      "discount": 0,
+      "requiresAuth": true,
+      "credentials": {
+        "email": "",
+        "password": ""
+      }
+    },
+    "printed-easy": {
+      "enabled": true,
+      "name": "Printed Easy",
+      "url": "https://www.printedeasy.com",
+      "discount": 0,
+      "requiresAuth": false
+    },
+    "instantprint": {
+      "enabled": true,
+      "name": "Instantprint",
+      "url": "https://www.instantprint.co.uk",
+      "discount": 0,
+      "requiresAuth": false
+    },
+    "helloprint": {
+      "enabled": true,
+      "name": "HelloPrint",
+      "url": "https://www.helloprint.co.uk",
+      "discount": 0,
+      "requiresAuth": false
+    },
+    "route1print": {
+      "enabled": true,
+      "name": "Route1Print",
+      "url": "https://www.route1print.co.uk",
+      "discount": 0,
+      "requiresAuth": false
+    },
+    "printuk": {
+      "enabled": true,
+      "name": "PrintUK",
+      "url": "https://www.printuk.com",
+      "discount": 0,
+      "requiresAuth": false
+    }
+  }
+}
